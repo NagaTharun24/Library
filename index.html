@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library_Catalog</title>
+    <style>
+        body {
+    background-color: #f0f0f0; /* Changed background color */
+    font-family: Arial, sans-serif; /* Added font family */
+    margin: 0;
+    padding: 0;
+}
+
+h2 {
+    margin-top: 20px; /* Added margin top for h2 */
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+input{
+    width: 100%; /* Made inputs and buttons full width */
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+button{
+    width: 100px; /* Made inputs and buttons full width */
+    padding: 10px;
+    background-color: #ccc;
+    margin: 6px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color:skyblue; /* Darker color on hover */
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+table th, table td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+table th {
+    background-color: #f2f2f2; /* Light gray background for table headers */
+}
+#display{
+            display: flex;
+            flex-wrap:wrap;
+            overflow: hidden;
+           align-items: start;
+           justify-content:flex-start;
+        }
+.bookView {
+    position: relative;
+        flex-wrap:wrap;
+        overflow: hidden;
+        display: flex;
+        align-items: start;
+           justify-content:flex-start;
+        width: 250px;
+        height: 240px;
+        margin: 10px;
+        padding: 10px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.bookView p {
+    margin: 5px 0;
+}
+
+#searchResult {
+    margin: 10px; /* Added margin top for search results */
+}
+
+#searchResult{
+    margin: 10px;
+        
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    width: 260px;
+    /* Light gray background for search results */
+}
+
+.center {
+    text-align: center;
+}
+
+    </style>
+</head>
+<body>
+    <!-- design to fetch the data from the user  -->
+    <center><h2>Library Catalog System</h2></center>
+    <table class="">
+        <h2>Add Book</h2>
+        <tr>
+            <th> <label for="title">Title</label></th>
+            <td>:</td>
+            <td> <input type="text" id="title" placeholder="Title"></td>
+            <th> <label for="author">Author</label>
+            <td>:</td>
+            <td><input type="text" id="author" placeholder="Author"></td>
+            <th><label for="isbn">ISBN</label></th>
+            <td>:</td>
+            <td><input type="text" id="isbn" placeholder="ISBN"></td>
+        </tr>
+        <tr>
+            <th><label for="genre">Genre</label></th>
+            <td>:</td>
+            <td><input type="text" id="genre" placeholder="Genre"></td>
+            <th><label for="reference">Reference</label></th>
+            <td>:</td>
+            <td><input type="text" id="reference" placeholder="Reference"></td>
+            <th></th>
+            <td></td>
+            <td><button type="button" id="addBookBtn" >ADD</button></td>
+        </tr>
+    </table>
+     <!-- if user wanths to search a book using names -->
+    <h2>Search Books</h2>
+      <input type="text" id="search" placeholder="Search...">
+       <button type="button" id="searchBtn" >Search</button>
+       <!-- used to display user search Book -->
+        <div id="searchResult"></div>
+        <!-- used to display Library Books -->
+         <center><h1>Books</h1></center>
+        <div id="display"></div>
+    <script >
+    //created a class to store book details
+    class Book {
+            //initialize the book object
+            constructor(title, author, isbn, genre) {
+                this._title = title;
+                this._author = author;
+                this._isbn = isbn;
+                this._genre = genre;
+                this._availability = true; 
+            }
+            get title() {
+                return this._title;
+            }
+            get author() {
+                return this._author;
+            }
+            get isbn() {
+                return this._isbn;
+            }
+            get genre() {
+                return this._genre;
+            }
+            get availability() {
+                return this._availability;
+            }
+            set availability(value) {
+                this._availability = value;
+            }
+
+            checkOut(){
+             if(!this._availability){
+                    alert("Already CheckOut...")
+                }
+            else{
+                this._availability=false;
+                displayAllBooks();
+                }
+            }
+            returnBook(){
+            if(this._availability){
+                    alert("Already Returned...");
+                }
+            else{
+                this._availability=true;
+                displayAllBooks();
+                 }
+              }
+    }
+
+//craeted a class to store,display all Books in Library
+            class LibraryCatalog {
+            constructor() {
+                //created a Array to store books information
+                this._booklist = [];
+                this.loadCatalog(); 
+                 }
+               //this method will be create a new Object  in Book/ReferenceBook
+               addBook(title, author, isbn, genre,reference) {
+                if (reference) {
+                    let newReferenceBook = new ReferenceBook(title, author, isbn, genre, reference);
+                    this._booklist.push(newReferenceBook);
+                } else {
+                    let newBook = new Book(title, author, isbn, genre);
+                    this._booklist.push(newBook);
+                }
+                this.saveCatalog();
+                 }       
+             //when remove button is clicked this method will execute and remove the book from the localStorage
+               removeBook(isbn) {
+                //checking weather book is present or not
+                const index = this._booklist.findIndex(book => book.isbn === isbn); 
+                if (index !== -1) {
+                    this._booklist.splice(index, 1);
+                    // calling saveCatalog to update LocalStorage after removing a Book
+                    this.saveCatalog();
+                    //again after removing that Book shoud be Remove from the Browser so once again calling displayAllBooks 
+                    displayAllBooks();
+                }
+            }
+        //with the help of parameter it will search for a Book in Library and return Book 
+            searchBooks(searchWord) {
+        
+                const result = this._booklist.filter(book =>
+                //user can search using title,author,isbn,genre
+                    book.title.includes(searchWord) ||
+                    book.author.includes(searchWord) ||
+                    book.genre.includes(searchWord) ||
+                    book.isbn.includes(searchWord) 
+                );
+                return result;
+            }
+            // when we call this ,it return all the books present in the library
+            displayAllBooks() {
+                return this._booklist;
+            }
+            //to change book Availability
+            checkOut(isbn){
+                const book=this._booklist.find(book=>book.isbn===isbn);
+                if(book){
+                    book.checkOut();
+                }
+            }
+             //to change book Availability
+             returnBook(isbn){
+                const book = this._booklist.find(book => book.isbn === isbn);
+                    if (book) {
+                        book.returnBook();
+                    }
+            }
+            //method wich will store all the book details in the LS in JSON format
+            saveCatalog() {
+                localStorage.setItem('libraryCatalog', JSON.stringify(this._booklist));
+            }
+            //it return the 
+            loadCatalog() {
+                //fetching the data from the local STorage 
+                const storedCatalog = localStorage.getItem('libraryCatalog');
+                if (storedCatalog) {
+                   // converting string object to parse Object
+                    this._booklist = JSON.parse(storedCatalog).map(bookData => {
+                        //
+                        if (bookData._reference) {
+                            return new ReferenceBook(
+                                bookData._title,
+                                bookData._author,
+                                bookData._isbn,
+                                bookData._genre,
+                                bookData._reference
+                            );
+                        } else {
+                            return new Book(
+                                bookData._title,
+                                bookData._author,
+                                bookData._isbn,
+                                bookData._genre
+                            );
+                        }
+                    });
+                }
+            }
+        }
+/*created A Class if any book wants to give extra data like RefernceBook 
+ in order to writr book class Again ,we can use inheritence so it can access Book calss*/
+          class ReferenceBook extends Book{
+            constructor(title, author, isbn, genre, reference){
+                super(title, author, isbn, genre);//sub class constructer chaining with super class
+                this._reference=reference;
+            }
+            get reference() {
+                return this._reference;
+            }
+    }
+        let catalog = new LibraryCatalog();
+        displayAllBooks();
+        
+        document.getElementById('addBookBtn').addEventListener('click', function() {
+            const title = document.getElementById('title').value;
+            const author = document.getElementById('author').value;
+            const isbn = document.getElementById('isbn').value;
+            const genre = document.getElementById('genre').value;
+            const reference = document.getElementById('reference').value;
+            //checking fields are provided with Details or Not
+            if (title !== '' && author !== '' && isbn !== "" && genre !== '') {
+                if (reference === '') {
+                    catalog.addBook(title, author, isbn, genre);
+                } else {
+                    catalog.addBook(title, author, isbn, genre, reference);
+                }
+            } else {
+                alert("Give Input");
+            }
+            //updating WebPage
+            displayAllBooks();
+            //clearing inputfeilds
+            document.getElementById('title').value = '';
+            document.getElementById('author').value = '';
+            document.getElementById('isbn').value = '';
+            document.getElementById('genre').value = '';
+            document.getElementById('reference').value='';
+        });
+        
+        document.getElementById('searchBtn').addEventListener('click', function() {
+            const searchWord = document.getElementById('search').value;
+            const view = document.getElementById("searchResult");
+            view.innerHTML = '';
+            if (searchWord !== "") {
+                const searchResults = catalog.searchBooks(searchWord);
+                console.log("sR", searchResults)
+                if (searchResults.length === 0) {
+                    view.innerHTML = "No Book With Given Inputs";
+                } else {
+                    searchResults.forEach(book => {
+                        const displaySearch = document.createElement("div");
+                        displaySearch.class = 'searchView';
+                        displaySearch.innerHTML = `
+                        <p><b>Title:</b> ${book.title}</p>
+                        <p><b>Author:</b> ${book.author}</p>
+                        <p><b>ISBN:</b> ${book.isbn}</p>
+                        <p><b>Genre:</b> ${book.genre}</p>
+                        <p><b>Availability:</b> ${book.availability ? `Available <br> <button onclick="catalog.checkOut('${book.isbn}')">Check Out</button> `: 
+            `Not Available <br> <button onclick="catalog.returnBook('${book.isbn}')">Return</button>`} <button onclick="catalog.removeBook('${book.isbn}')">Remove</button></p>`;
+                        view.appendChild(displaySearch);
+                    });
+                }
+                document.getElementById('search').value = '';
+            } else {
+                view.innerHTML = "give Input ";
+            }
+        });
+        
+        function displayAllBooks() {
+            const books = catalog.displayAllBooks();
+            const displayArea = document.getElementById('display');
+            displayArea.innerHTML = '';
+            books.forEach(book => {
+                const bookDiv = document.createElement('div');
+                bookDiv.className = 'bookView';
+                bookDiv.innerHTML = `
+                    <p><b>Title:</b> ${book.title}</p>
+                    <p><b>Author:</b> ${book.author}</p>
+                    <p><b>ISBN:</b> ${book.isbn}</p>
+                    <p><b>Genre:</b> ${book.genre}</p>
+                    ${book instanceof ReferenceBook ? `<p><b>Reference:</b> ${book.reference}</p>` : ''}
+                    <p><b>Availability:</b> ${book.availability ? `Available <br> <button onclick="catalog.checkOut('${book.isbn}')">Check Out</button> `: 
+            `Not Available <br> <button onclick="catalog.returnBook('${book.isbn}')">Return</button>`} <button onclick="catalog.removeBook('${book.isbn}')">Remove</button></p>`;
+                displayArea.appendChild(bookDiv);
+            });
+        } 
+    </script>
+</body>
+</html>
